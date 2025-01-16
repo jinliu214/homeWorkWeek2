@@ -5,18 +5,22 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const API_PATH = import.meta.env.VITE_API_PATH;
 function App() {
+  //isAuth默認 false 顯示登錄頁面
   const [isAuth, setIsAuth] = useState(false);
-
+  //單一產品選取狀態
   const [tempProduct, setTempProduct] = useState({});
-
+  //產品列表狀態
   const [products, setProducts] = useState([]);
-
+  //賬號密碼狀態
   const [account, setAccount] = useState({
     username: "example@test.com",
     password: "example",
   });
+
+  //輸入賬號密碼
   const handleInputChange = (e) => {
     const { value, name } = e.target;
+    //取得鍵入值
     setAccount({
       ...account,
       [name]: value,
@@ -25,26 +29,28 @@ function App() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-
+    //串接API登入賬號
     axios
       .post(`${BASE_URL}/v2/admin/signin`, account)
       .then((res) => {
         const { token, expired } = res.data;
-        // console.log(token, expired);
+
+        //取得token 和 expired
         document.cookie = `hexToken=${token}; expires=${new Date(expired)}`;
-
+        //把token帶入header
         axios.defaults.headers.common["Authorization"] = token;
-
+        //串接API取得產品列表
         axios
           .get(`${BASE_URL}/v2/api/${API_PATH}/admin/products`)
           .then((res) => setProducts(res.data.products))
           .catch((error) => console.error(error));
-
+        //確認登入狀態顯示產品列表
         setIsAuth(true);
       })
       .catch((error) => alert("login fail"));
   };
 
+  //檢查使用者是否登入，是的話彈出確認視窗
   const checkUserLogin = async () => {
     try {
       await axios.post(`${BASE_URL}/v2/api/user/check`);
@@ -57,6 +63,7 @@ function App() {
   return (
     <>
       {isAuth ? (
+        //判斷是否登入，是的話顯示產品列表，否的話顯示登入頁面
         <div className="container py-5">
           <div className="row">
             <div className="col-6">
@@ -105,6 +112,7 @@ function App() {
                 <div className="card">
                   <img
                     src={tempProduct.imageUrl}
+                    //'img-fluid'控制圖片大小
                     className="card-img-top img-fluid"
                     alt={tempProduct.title}
                   />
@@ -127,6 +135,7 @@ function App() {
                     {tempProduct.imagesUrl?.map(
                       (image) =>
                         image && (
+                          //'img-fluid'控制圖片大小
                           <img key={image} src={image} className="img-fluid" />
                         )
                     )}
